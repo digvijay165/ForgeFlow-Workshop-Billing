@@ -2,6 +2,6 @@
 // To turn on login and sync: follow SETUP.md, then paste your Supabase values here.
 // The anon key is meant to be public — your data is protected by the database rules in supabase/schema.sql.
 window.FORGEFLOW_CONFIG = {
-  supabaseUrl: '',      // e.g. 'https://abcdefgh.supabase.co'
-  supabaseAnonKey: '',  // Project Settings → API → "anon public" key
+  supabaseUrl: 'https://zwxhlxjgsdijzqpsviiv.supabase.co',
+  supabaseAnonKey: 'sb_publishable_wOhvEwVlyimxtkHRh4qcGw_P7EhUjL-',  // publishable key — safe to be public
 };
