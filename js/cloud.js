@@ -129,7 +129,7 @@
       if (local?.pending === 'clear' && owner) {
         let r = await sb.from('price_lists').delete().eq('shop_id', id); if (r.error) throw r.error;
         r = await sb.from('price_list_chunks').delete().eq('shop_id', id); if (r.error) throw r.error;
-        await FF.idbDel(key); FF.toast('Back to the built-in price list for your shop.');
+        await FF.idbDel(key); FF.toast('Price list removed from your shop.');
         return;
       }
       const { data: cur, error } = await sb.from('price_lists').select('version,name,parts,chunks').eq('shop_id', id).maybeSingle();
@@ -148,7 +148,7 @@
         return;
       }
       if (!cur) {
-        // The shop has no uploaded list: use the built-in one.
+        // The shop has no uploaded list: remove any old copy from this device.
         if (local && !(owner && local.pending)) { await FF.idbDel(key); if (shop?.id === id) FF.usePriceList(key) }
         return;
       }
