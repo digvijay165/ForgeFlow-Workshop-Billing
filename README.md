@@ -4,7 +4,7 @@
 
 ### *Fast, simple GST billing for machine-parts workshops.*
 
-A browser-based billing app with a **built-in price list of 65,000+ parts**. Type a part number, press Enter, and the MRP and GST fill in automatically. Stock, purchases, expenses, GST reports, staff logins and cloud sync are built in.
+A browser-based billing app where each shop **uploads its own MRP price list**. Type a part number, press Enter, and the MRP and GST fill in automatically. Stock, purchases, expenses, GST reports, staff logins and cloud sync are built in.
 
 [![Live App](https://img.shields.io/badge/🚀_Live_App-Open_ForgeFlow-1e5c45?style=for-the-badge)](https://digvijay165.github.io/billing/)
 
@@ -31,7 +31,7 @@ A browser-based billing app with a **built-in price list of 65,000+ parts**. Typ
 
 **ForgeFlow** is billing software built for a real machine-parts workshop. It replaces handwritten bills and price-list lookups with a fast, clean web app. It works on its own in the browser with no sign-up, or with optional **cloud sync and staff logins** (Supabase) so the whole shop shares one set of bills across phones and computers.
 
-It ships with the **MRP June '25 price list (65,208 parts)**, creates proper **GST invoices**, remembers customers, and can share bills on **WhatsApp** in one click.
+It reads your company's **MRP Excel list** (kept private to your shop), creates proper **GST invoices**, remembers customers, and can share bills on **WhatsApp** in one click.
 
 > 🔗 **Try it live:** [digvijay165.github.io/billing](https://digvijay165.github.io/billing/)
 
@@ -42,7 +42,7 @@ It ships with the **MRP June '25 price list (65,208 parts)**, creates proper **G
 ### ⚡ Billing
 | Feature | Description |
 | --- | --- |
-| 🔍 **Instant part lookup** | Search 65,000+ parts by part number or description right from the Home page |
+| 🔍 **Instant part lookup** | Search your uploaded price list by part number or description right from the Home page |
 | ⌨️ **Type & Enter billing** | Enter a part number and the MRP and GST rate fill in automatically |
 | ➕ **Smart quantities** | Adding the same part again increases its quantity |
 | 🔧 **Labour & extras** | Add labour lines, discounts, and notes to any bill |
@@ -118,7 +118,6 @@ It ships with the **MRP June '25 price list (65,208 parts)**, creates proper **G
 - **Supabase** (optional): login, Postgres database with row-level security for staff roles, realtime sync
 - **Service worker**: offline use and install-to-home-screen
 - **Native Excel reader**: parses `.xlsx` in the browser using `DecompressionStream`, with no external libraries
-- **JSON price list**: 65,208 parts bundled in `data/mrp-june-2025.json`
 - **GitHub Pages**: static hosting
 
 ---
@@ -133,8 +132,6 @@ billing/
 ├── supabase/schema.sql        # Database tables and security rules
 ├── sw.js, manifest.json       # Offline support and phone install
 ├── SETUP.md                   # How to turn on cloud sync
-├── data/
-│   └── mrp-june-2025.json     # Built-in MRP price list (65,208 parts)
 ├── forgeflow-screenshot.png   # README preview image
 └── README.md
 ```
@@ -156,26 +153,13 @@ python -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-> 💡 Use a local server instead of opening `index.html` directly, so the browser can load the built-in price list from `data/`.
+> 💡 Use a local server instead of opening `index.html` directly, so the offline cache and login work.
 
 ---
 
 ## 🔄 Updating the Price List
 
-**Option 1: in the app (recommended).**
-Go to **Price list & parts** and upload the new MRP Excel file (columns like *Material, Desc, MRP, GST rate*). It's saved in that browser and replaces the built-in list on that device.
-
-**Option 2: replace the built-in list.**
-Replace `data/mrp-june-2025.json` with a file of the same shape:
-
-```json
-{
-  "name": "MRP June'25",
-  "rows": [["partNo", "description", 1250, 18]]
-}
-```
-
-If the file name changes, update `BUILT_IN_LIST` in `index.html`.
+No price list is built in. The shop owner goes to **Price list & parts** and uploads the MRP Excel file (columns like *Material, Desc, MRP, GST rate*). With cloud sync on, the list belongs to that shop only: staff get it on every device, and other shops can't see it. Upload again whenever a new list arrives; old bills keep their prices.
 
 ---
 
