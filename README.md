@@ -187,7 +187,7 @@ Cloud sync is **off by default**. To turn it on, follow **[SETUP.md](SETUP.md)**
 
 - **Local mode** (default): bills, customers, and settings stay **only in the browser** on the device you use
 - **Cloud mode**: data is stored in **your own** Supabase project; database rules allow only members of your shop to read it
-- Uploaded price lists are read **locally** and kept in IndexedDB on that device
+- Uploaded price lists are read **locally** in the browser. In cloud mode each shop's list (part numbers and MRPs) is private to that shop; other shops can't read it
 - Use **Business settings → Download backup** for a file copy of everything
 
 > ⚠️ In local mode, clearing browser data deletes your bills. The app reminds you to back up every 7 days.

@@ -111,6 +111,76 @@
     if (changed) FF.replaceDb(db);
   }
 
+  // ---- The shop's own uploaded MRP price list
+  // Kept on this device under a key for this shop only, and in the cloud where only this shop can read it.
+  // The local record may carry `pending`: true = upload it, 'clear' = remove the shop's list,
+  // 'claim' = an old list from before lists were per shop; upload it only if the shop has none yet.
+  const LEGACY_PL = 'pricelist', CHUNK = 5000;
+  let plBusy = false, plAgain = false;
+  const plKey = () => 'pricelist_' + shop.id;
+  async function syncPriceList() {
+    if (!shop || !navigator.onLine) return;
+    if (plBusy) { plAgain = true; return }
+    plBusy = true;
+    const id = shop.id, key = plKey();
+    try {
+      let local = null; try { local = await FF.idbGet(key) } catch {}
+      const owner = role === 'owner';
+      if (local?.pending === 'clear' && owner) {
+        let r = await sb.from('price_lists').delete().eq('shop_id', id); if (r.error) throw r.error;
+        r = await sb.from('price_list_chunks').delete().eq('shop_id', id); if (r.error) throw r.error;
+        await FF.idbDel(key); FF.toast('Back to the built-in price list for your shop.');
+        return;
+      }
+      const { data: cur, error } = await sb.from('price_lists').select('version,name,parts,chunks').eq('shop_id', id).maybeSingle();
+      if (error) throw error;
+      if (owner && local?.rows?.length && (local.pending === true || (local.pending === 'claim' && !cur))) {
+        const version = crypto.randomUUID(), n = Math.ceil(local.rows.length / CHUNK);
+        for (let i = 0; i < n; i++) {
+          const r = await sb.from('price_list_chunks').insert({ shop_id: id, version, n: i, rows: local.rows.slice(i * CHUNK, (i + 1) * CHUNK) });
+          if (r.error) throw r.error;
+        }
+        let r = await sb.from('price_lists').upsert({ shop_id: id, version, name: local.name, parts: local.rows.length, chunks: n, updated_at: new Date().toISOString() });
+        if (r.error) throw r.error;
+        await sb.from('price_list_chunks').delete().eq('shop_id', id).neq('version', version);
+        await FF.idbPut(key, { name: local.name, rows: local.rows, version });
+        FF.toast(`Price list saved to your shop: ${local.rows.length.toLocaleString('en-IN')} parts.`);
+        return;
+      }
+      if (!cur) {
+        // The shop has no uploaded list: use the built-in one.
+        if (local && !(owner && local.pending)) { await FF.idbDel(key); if (shop?.id === id) FF.usePriceList(key) }
+        return;
+      }
+      if (local?.version === cur.version) return;
+      if (owner && local?.pending === true) return;
+      const rows = [];
+      for (let i = 0; i < cur.chunks; i += 4) {
+        const r = await sb.from('price_list_chunks').select('n,rows').eq('shop_id', id).eq('version', cur.version).gte('n', i).lt('n', i + 4).order('n');
+        if (r.error) throw r.error;
+        for (const c of r.data) rows.push(...c.rows);
+      }
+      if (rows.length !== cur.parts) return; // A new list is still being uploaded; try again later.
+      await FF.idbPut(key, { name: cur.name, rows, version: cur.version });
+      if (shop?.id === id) FF.usePriceList(key);
+    } catch (e) {
+      if (role === 'owner') console.warn('Price list sync failed; will retry.', e);
+    } finally {
+      plBusy = false;
+      if (plAgain) { plAgain = false; syncPriceList() }
+    }
+  }
+  // Lists uploaded before this change were shared by everyone on the device.
+  // Hand such a list to the first shop owner who opens here, then remove the shared copy.
+  async function adoptLegacyPriceList() {
+    try {
+      const old = await FF.idbGet(LEGACY_PL); if (!old) return;
+      await FF.idbDel(LEGACY_PL);
+      if (role !== 'owner' || !old.rows?.length || await FF.idbGet(plKey())) return;
+      await FF.idbPut(plKey(), { name: old.name, rows: old.rows, pending: 'claim' });
+    } catch {}
+  }
+
   function subscribe() {
     channel?.unsubscribe();
     channel = sb.channel('docs-' + shop.id)
@@ -205,17 +275,21 @@
       const local = FF.localDb();
       if (!local.settings.businessName || local.settings.businessName === 'Your workshop') local.settings.businessName = s.name;
       FF.useStore(dataKey(), local); meta = { synced: {}, lastPull: null }; saveMeta();
+      // Moved, not copied: another account opening a shop on this device must not get them too.
+      FF.clearLocal();
     } else if (cached) FF.useStore(dataKey(), cached);
     else {
       // First time on this device: start empty and take everything (including settings) from the server.
       FF.useStore(dataKey(), FF.emptyDb()); meta = { synced: { settings: { h: hash(FF.db.settings), c: 'settings' } }, lastPull: null }; saveMeta();
     }
     FF.setRole(r);
+    await adoptLegacyPriceList();
+    FF.usePriceList(plKey());
     hideScreen();
     document.body.classList.add('cloud-on');
     subscribe();
-    await pull(); await push();
-    clearInterval(timer); timer = setInterval(() => { pull(); push() }, 60000);
+    await pull(); await push(); syncPriceList();
+    clearInterval(timer); timer = setInterval(() => { pull(); push(); syncPriceList() }, 60000);
   }
 
   // ---- Team (owner only), shown in Business settings
@@ -247,15 +321,22 @@
       const c = t.closest('[data-cloud]'); if (!c) return;
       const act = c.dataset.cloud;
       if (act === 'signout') {
-        if (shop && pendingCount() && !confirm('Some changes are not saved to the cloud yet. Sign out anyway? They stay on this device.')) return;
+        const waiting = shop && pendingCount();
+        if (waiting && !confirm('Some changes are not saved to the cloud yet. Sign out anyway? They stay on this device.')) return;
+        // Everything is in the cloud: remove this shop's copy so the next person on this device can't see it.
+        if (shop && !waiting) {
+          let pl = null; try { pl = await FF.idbGet(plKey()) } catch {}
+          if (!pl?.pending) { try { await FF.idbDel(plKey()) } catch {} }
+          try { [dataKey(), metaKey(), LAST].forEach(k => localStorage.removeItem(k)) } catch {}
+        }
         await sb.auth.signOut(); location.reload();
       }
       if (act === 'remove-member') { if (!confirm('Remove this staff member? They will no longer be able to open your shop.')) return; const { error } = await sb.from('members').delete().eq('shop_id', shop.id).eq('user_id', c.dataset.user); FF.toast(error ? 'Could not remove: ' + error.message : 'Staff member removed.'); renderTeam() }
       if (act === 'cancel-invite') { await sb.from('invites').delete().eq('shop_id', shop.id).eq('email', c.dataset.email); renderTeam() }
     });
-    addEventListener('online', () => { pull(); push() });
+    addEventListener('online', () => { pull(); push(); syncPriceList() });
     addEventListener('offline', status);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { pull(); push() } });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { pull(); push(); syncPriceList() } });
     addEventListener('beforeunload', e => { if (shop && pendingCount() && navigator.onLine) { push(); e.preventDefault(); e.returnValue = '' } });
   }
 
@@ -279,5 +360,6 @@
     changed() { if (!shop) return; status(); clearTimeout(changeTimer); changeTimer = setTimeout(push, 400) },
     renderTeam,
     status,
+    priceListChanged() { syncPriceList() },
   };
 })();

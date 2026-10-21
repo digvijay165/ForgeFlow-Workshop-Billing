@@ -129,6 +129,40 @@ create policy docs_update on public.docs for update
     or (public.my_role(shop_id) = 'staff' and collection in ('catalog', 'invoices', 'stock', 'purchases') and not deleted)
   );
 
+-- Each shop's uploaded MRP price list. Private to that shop: other shops can never read it.
+-- The list is large (60,000+ parts), so it is stored in chunks. A new upload writes its chunks
+-- under a new version, then points price_lists at it, so devices never read a half-written list.
+create table if not exists public.price_lists (
+  shop_id uuid primary key references public.shops(id) on delete cascade,
+  version text not null,
+  name text not null,
+  parts integer not null,
+  chunks integer not null,
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.price_list_chunks (
+  shop_id uuid not null references public.shops(id) on delete cascade,
+  version text not null,
+  n integer not null,
+  rows jsonb not null,
+  primary key (shop_id, version, n)
+);
+
+alter table public.price_lists enable row level security;
+alter table public.price_list_chunks enable row level security;
+
+-- Everyone in the shop can read its list. Only the owner can upload or remove it.
+drop policy if exists price_lists_read on public.price_lists;
+create policy price_lists_read on public.price_lists for select using (public.my_role(shop_id) is not null);
+drop policy if exists price_lists_owner on public.price_lists;
+create policy price_lists_owner on public.price_lists for all
+  using (public.my_role(shop_id) = 'owner') with check (public.my_role(shop_id) = 'owner');
+drop policy if exists price_list_chunks_read on public.price_list_chunks;
+create policy price_list_chunks_read on public.price_list_chunks for select using (public.my_role(shop_id) is not null);
+drop policy if exists price_list_chunks_owner on public.price_list_chunks;
+create policy price_list_chunks_owner on public.price_list_chunks for all
+  using (public.my_role(shop_id) = 'owner') with check (public.my_role(shop_id) = 'owner');
+
 -- Live updates between devices.
 do $$ begin
   alter publication supabase_realtime add table public.docs;
