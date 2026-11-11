@@ -18,7 +18,7 @@ These steps take about 10 minutes and are free (the Supabase free plan is plenty
 ## 3. Point login emails at your website
 
 1. Open **Authentication** → **URL Configuration**.
-2. Set **Site URL** to `https://digvijay165.github.io/billing/`
+2. Set **Site URL** to `https://digvijay165.github.io/ForgeFlow-Workshop-Billing/`
 3. Under **Redirect URLs**, add the same address.
 
 (Optional) If you don't want new accounts to confirm their email first, turn off

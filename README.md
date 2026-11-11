@@ -6,7 +6,7 @@
 
 A browser-based billing app where each shop **uploads its own MRP price list**. Type a part number, press Enter, and the MRP and GST fill in automatically. Stock, purchases, expenses, GST reports, staff logins and cloud sync are built in.
 
-[![Live App](https://img.shields.io/badge/🚀_Live_App-Open_ForgeFlow-1e5c45?style=for-the-badge)](https://digvijay165.github.io/billing/)
+[![Live App](https://img.shields.io/badge/🚀_Live_App-Open_ForgeFlow-1e5c45?style=for-the-badge)](https://digvijay165.github.io/ForgeFlow-Workshop-Billing/)
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
@@ -15,11 +15,11 @@ A browser-based billing app where each shop **uploads its own MRP price list**. 
 ![GitHub Pages](https://img.shields.io/badge/Hosted_on-GitHub_Pages-222222?style=flat-square&logo=github&logoColor=white)
 ![No Install](https://img.shields.io/badge/Install-None_Required-success?style=flat-square)
 
-**[🌐 Live App](https://digvijay165.github.io/billing/)** · **[🐛 Report Bug](https://github.com/digvijay165/billing/issues)** · **[✨ Request Feature](https://github.com/digvijay165/billing/issues)**
+**[🌐 Live App](https://digvijay165.github.io/ForgeFlow-Workshop-Billing/)** · **[🐛 Report Bug](https://github.com/digvijay165/ForgeFlow-Workshop-Billing/issues)** · **[✨ Request Feature](https://github.com/digvijay165/ForgeFlow-Workshop-Billing/issues)**
 
 <br>
 
-<a href="https://digvijay165.github.io/billing/">
+<a href="https://digvijay165.github.io/ForgeFlow-Workshop-Billing/">
   <img src="forgeflow-screenshot.png" alt="ForgeFlow dashboard" width="100%">
 </a>
 
@@ -33,7 +33,7 @@ A browser-based billing app where each shop **uploads its own MRP price list**. 
 
 It reads your company's **MRP Excel list** (kept private to your shop), creates proper **GST invoices**, remembers customers, and can share bills on **WhatsApp** in one click.
 
-> 🔗 **Try it live:** [digvijay165.github.io/billing](https://digvijay165.github.io/billing/)
+> 🔗 **Try it live:** [digvijay165.github.io/ForgeFlow-Workshop-Billing](https://digvijay165.github.io/ForgeFlow-Workshop-Billing/)
 
 ---
 
@@ -126,7 +126,7 @@ It reads your company's **MRP Excel list** (kept private to your shop), creates 
 ## 📁 Project Structure
 
 ```
-billing/
+ForgeFlow-Workshop-Billing/
 ├── index.html                 # The app (UI, styles, and logic)
 ├── config.js                  # Supabase keys (empty = local-only mode)
 ├── js/cloud.js                # Login, staff roles, and cloud sync
@@ -142,13 +142,13 @@ billing/
 ## 🚀 Getting Started
 
 ### Use it online
-Just open the **[live app](https://digvijay165.github.io/billing/)**. Nothing to install.
+Just open the **[live app](https://digvijay165.github.io/ForgeFlow-Workshop-Billing/)**. Nothing to install.
 
 ### Run locally
 
 ```bash
-git clone https://github.com/digvijay165/billing.git
-cd billing
+git clone https://github.com/digvijay165/ForgeFlow-Workshop-Billing.git
+cd ForgeFlow-Workshop-Billing
 python -m http.server 8000
 ```
 
@@ -183,7 +183,7 @@ Cloud sync is **off by default**. To turn it on, follow **[SETUP.md](SETUP.md)**
 
 | Setting | Value |
 | --- | --- |
-| Live URL | [digvijay165.github.io/billing](https://digvijay165.github.io/billing/) |
+| Live URL | [digvijay165.github.io/ForgeFlow-Workshop-Billing](https://digvijay165.github.io/ForgeFlow-Workshop-Billing/) |
 | Host | GitHub Pages |
 | Source | `main` branch, `/ (root)` |
 | Build command | *None* |
