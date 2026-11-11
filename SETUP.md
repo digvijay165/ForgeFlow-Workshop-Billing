@@ -58,6 +58,36 @@ Commit and push. GitHub Pages updates in about a minute.
 Staff can make bills, take payments, record purchases and update stock.
 They can't delete anything, see reports or expenses, or change settings.
 
+## 7. Save bills to OneDrive (optional)
+
+This lets anyone using ForgeFlow paste the link to **their own** OneDrive Excel file
+(**Business settings → Your data → ☁ Save bills to a OneDrive Excel link**). After they sign in with
+Microsoft once, every saved bill rewrites that workbook online. You only do this setup once, and it's free.
+
+1. Go to [portal.azure.com](https://portal.azure.com) and sign in with any Microsoft account
+   (a personal Outlook/Hotmail account works).
+2. Search for **App registrations** → **New registration**.
+   - **Name:** `ForgeFlow`
+   - **Supported account types:** *Accounts in any organizational directory and personal Microsoft accounts*
+   - **Redirect URI:** choose **Single-page application (SPA)** and enter
+     `https://digvijay165.github.io/ForgeFlow-Workshop-Billing/`
+3. Click **Register**. On the next page, open **Authentication** and add a second SPA redirect URI:
+   `https://digvijay165.github.io/ForgeFlow-Workshop-Billing/index.html`
+4. Open **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**,
+   tick **Files.ReadWrite.All**, and click **Add permissions**.
+5. Go back to **Overview** and copy the **Application (client) ID**. Paste it into [`config.js`](config.js):
+
+```js
+  onedriveClientId: '00000000-0000-0000-0000-000000000000',
+```
+
+Commit and push. The client ID is not a secret. There is no client secret to create.
+
+**For each user:** in OneDrive, open (or create) an Excel file → **Share** → **Copy link**, then paste
+that link into ForgeFlow and sign in. Use an empty file kept just for ForgeFlow, because every save
+replaces everything in that workbook with the latest bills. If the file is open for editing at the
+moment a bill is saved, OneDrive may refuse the write; it is updated again on the next save.
+
 ## Good to know
 
 - **Offline:** bills made without internet are saved on the device and sent when it reconnects.

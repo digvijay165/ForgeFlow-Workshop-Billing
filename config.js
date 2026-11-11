@@ -4,4 +4,6 @@
 window.FORGEFLOW_CONFIG = {
   supabaseUrl: 'https://zwxhlxjgsdijzqpsviiv.supabase.co',
   supabaseAnonKey: 'sb_publishable_wOhvEwVlyimxtkHRh4qcGw_P7EhUjL-',  // publishable key — safe to be public
+  // Microsoft app (client) ID for "Save bills to a OneDrive Excel link". Safe to be public. See SETUP.md.
+  onedriveClientId: '',
 };
